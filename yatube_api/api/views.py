@@ -1,13 +1,15 @@
+from posts.models import Follow, Group, Post, User
+from rest_framework import filters, permissions, viewsets
 from rest_framework.exceptions import ValidationError
-
-from posts.models import Group, Post, Follow
-from rest_framework import permissions, viewsets, filters
 from rest_framework.generics import get_object_or_404
+from rest_framework.pagination import LimitOffsetPagination
 
 from .permission import UserIdentificationObject
-from .serializers import CommentSerializer, GroupSerializer, PostSerializer, FollowSerializer
-
-from rest_framework.pagination import LimitOffsetPagination
+from .serializers import (CommentSerializer,
+                          FollowSerializer,
+                          GroupSerializer,
+                          PostSerializer
+                          )
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -49,13 +51,19 @@ class FollowViewSet(viewsets.ModelViewSet):
         return follow
 
     def perform_create(self, serializer):
-        following = dict(serializer.validated_data)['following']
+        following = get_object_or_404(User,
+                                      username=serializer.data['following']
+                                      )
         check_subscription = self.get_queryset().filter(
             following=following
         )
         if following == self.request.user:
-            raise ValidationError('Нельзя на самого себя подписываться!')
+            raise ValidationError(
+                {'following': 'Нельзя на самого себя подписываться!'}
+            )
         if check_subscription.exists():
-            raise ValidationError(f'Вы уже подписаны на {following}')
+            raise ValidationError(
+                {'following': f'Вы уже подписаны на {following}'}
+            )
 
         return serializer.save(user=self.request.user)
