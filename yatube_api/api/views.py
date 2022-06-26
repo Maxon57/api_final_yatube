@@ -1,6 +1,5 @@
-from posts.models import Follow, Group, Post, User
+from posts.models import Follow, Group, Post
 from rest_framework import filters, permissions, viewsets
-from rest_framework.exceptions import ValidationError
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import LimitOffsetPagination
 
@@ -49,21 +48,3 @@ class FollowViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         follow = Follow.objects.filter(user=self.request.user)
         return follow
-
-    def perform_create(self, serializer):
-        following = get_object_or_404(User,
-                                      username=serializer.data['following']
-                                      )
-        check_subscription = self.get_queryset().filter(
-            following=following
-        )
-        if following == self.request.user:
-            raise ValidationError(
-                {'following': 'Нельзя на самого себя подписываться!'}
-            )
-        if check_subscription.exists():
-            raise ValidationError(
-                {'following': f'Вы уже подписаны на {following}'}
-            )
-
-        return serializer.save(user=self.request.user)
