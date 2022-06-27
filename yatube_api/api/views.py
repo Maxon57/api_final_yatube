@@ -7,8 +7,7 @@ from .permission import UserIdentificationObject
 from .serializers import (CommentSerializer,
                           FollowSerializer,
                           GroupSerializer,
-                          PostSerializer
-                          )
+                          PostSerializer)
 
 
 class PostViewSet(viewsets.ModelViewSet):
